@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app_riverpod/get_it.dart';
 import 'package:flutter_app_riverpod/provider_examples/change_notifier_provider/big_counter_model.dart';
 import 'package:flutter_app_riverpod/provider_examples/change_notifier_provider/big_counter_provider.dart';
 import 'package:flutter_app_riverpod/provider_examples/future_provider/username_provider.dart';
 import 'package:flutter_app_riverpod/provider_examples/state_notifier_provider/theme_notifier.dart';
 import 'package:flutter_app_riverpod/provider_examples/state_notifier_provider/theme_provider.dart';
-import 'package:flutter_app_riverpod/provider_examples/state_notifier_provider/theme_state.dart';
+import 'package:flutter_app_riverpod/repository/user_data_repo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'provider_examples/provider/greeting_provider.dart';
 import 'provider_examples/state_provider/counter_provider.dart';
 
 void main() {
+  configureDependencies();
   runApp(
     // For widgets to be able to read providers, we need to wrap the entire
     // application in a "ProviderScope" widget.
@@ -30,18 +32,19 @@ class HomeScreen extends ConsumerWidget {
     final String greeting = ref.watch(greetingProvider);
 
     // StateProvider example
-    final int valueCounter = ref.watch(counterProvider);
+    int valueCounter = ref.watch(counterProvider.state).state;
 
     // ChangeNotifierProvider example
     final BigCounterModel bigCounterModel = ref.watch(bigCounterModelProvider);
     final int valueBigCounter = bigCounterModel.value;
     
     // StateNotifier example
-    final ThemeState themeState = ref.watch(themeProvider);
+    final themeState = ref.watch(themeProvider);
     final primaryColor = themeState.isDarkMode ? Colors.black : Colors.red;
     
     // FutureProvider example
-    final AsyncValue<String> usernameAsyncValue = ref.watch(usernameProvider);
+    final userRepo = getIt.get<UserDataRepository>();
+    final AsyncValue<String> usernameAsyncValue = ref.watch(usernameProvider(userRepo));
     final Widget usernameWidget = usernameAsyncValue.when(
       loading: () => const CircularProgressIndicator(),
       error: (err, stack) => Text('Error: $err'),
@@ -87,7 +90,7 @@ class HomeScreen extends ConsumerWidget {
               // Counter button
               FloatingActionButton(
                 backgroundColor: primaryColor,
-                onPressed: () => ref.read<StateController<int>>(counterProvider.state).state++,
+                onPressed: () => ref.read(counterProvider.state).state++,
                 child: const Icon(Icons.add),
               ),
               // Theme button

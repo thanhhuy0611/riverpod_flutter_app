@@ -1,3 +1,6 @@
+import 'package:injectable/injectable.dart';
+
+@singleton
 class UserDataRepository {
 
   Future<String> getUsername() async {
