@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_riverpod/get_it.dart';
 import 'package:flutter_app_riverpod/provider_examples/change_notifier_provider/big_counter_model.dart';
@@ -42,14 +45,19 @@ class HomeScreen extends ConsumerWidget {
     final themeState = ref.watch(themeProvider);
     final primaryColor = themeState.isDarkMode ? Colors.black : Colors.red;
     
-    // FutureProvider example
+    // GetIt example
     final userRepo = getIt.get<UserDataRepository>();
-    final AsyncValue<String> usernameAsyncValue = ref.watch(usernameProvider(userRepo));
-    final Widget usernameWidget = usernameAsyncValue.when(
+    // FutureProvider example
+    final AsyncValue<Either<String, HttpException>> response = ref.watch(usernameProvider(userRepo));
+    
+    final Widget usernameWidget = response.when(
       loading: () => const CircularProgressIndicator(),
       error: (err, stack) => Text('Error: $err'),
-      data: (username) {
-        return Text(username);
+      data: (response) {
+        return response.fold(
+          (username) => Text(username),
+          (httpError) => Text('Error: $httpError'),
+        );
       },
     );
 
